@@ -1,0 +1,22 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+.DS_Store
+data/
+models/
+runs/
+baseline_out/
+*.pt
+*.onnx
+*.engine
+*.mp4
+*.MP4
+*.mov
+*.MOV

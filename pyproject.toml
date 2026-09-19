@@ -1,0 +1,19 @@
+[project]
+name = "aerial-car-tracking"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Keshav Rawat", email = "keshav.rawat@student.manchester.ac.uk" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "ultralytics>=8.4.155",
+]
+
+[project.scripts]
+aerial-car-tracking = "aerial_car_tracking:main"
+
+[build-system]
+requires = ["uv_build>=0.12.17,<0.13.0"]
+build-backend = "uv_build"
