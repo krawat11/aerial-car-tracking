@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aerial Vehicle Detection &amp; Tracking</title>
+<meta name="description" content="Fine-tuning a YOLO26s detector on drone footage to track vehicles from the air: method, measured results and the failure cases that remain.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Computer vision · UAV · Multi-object tracking</p>
+    <h1>Detecting and tracking vehicles from a drone</h1>
+    <p class="lede">A YOLO26s detector fine-tuned on aerial imagery, paired with BoT-SORT tracking and a
+      moving-versus-parked analysis, tested on my own 4K footage over Swansea.</p>
+    <div class="metrics">
+      <div class="metric"><span class="n">0.1 s → 1.3 s</span><span class="l">Median track lifetime</span></div>
+      <div class="metric"><span class="n">100 → 16</span><span class="l">Flicker tracks per clip</span></div>
+      <div class="metric"><span class="n">56% → 2%</span><span class="l">Low-confidence detections</span></div>
+      <div class="metric"><span class="n">25 FPS</span><span class="l">1280 px on an Apple M4</span></div>
+    </div>
+    <div class="cta">
+      <a class="btn primary" href="https://github.com/krawat11/aerial-car-tracking">View the code</a>
+      <a class="btn" href="#results">Jump to results</a>
+    </div>
+  </div>
+</header>
+
+<main>
+<section class="wrap" id="demo">
+  <h2>The system running</h2>
+  <p class="sub">Untrained detector on top, fine-tuned detector below. Bright boxes are moving vehicles,
+     grey boxes are parked. The panel tracks counts, unique IDs and confidence as the clip plays.</p>
+  <figure class="video">
+    <video controls playsinline poster="media/poster.jpg" preload="none">
+      <source src="media/demo.mp4" type="video/mp4">
+      Your browser cannot play this video.
+    </video>
+    <figcaption>Residential street, Swansea. 4K at 60 fps, processed offline at 1280 px.</figcaption>
+  </figure>
+</section>
+
+<section class="wrap" id="how">
+  <h2>How it works</h2>
+  <ol class="steps">
+    <li>
+      <h3>Detect</h3>
+      <p>YOLO26s fine-tuned on VisDrone: 6,471 aerial images and 188,621 vehicle boxes, collapsed into a
+         single <em>vehicle</em> class because car-versus-truck labels from 120 m are mostly noise.</p>
+    </li>
+    <li>
+      <h3>Clean the training data</h3>
+      <p>VisDrone's “ignored regions” are masked out, so a correct detection inside one is no longer
+         punished as a false positive. Every image is then scored for camera angle by comparing box sizes
+         at the top and bottom of the frame; only 8% were near-nadir, so those were oversampled to 19%.</p>
+    </li>
+    <li>
+      <h3>Track</h3>
+      <p>BoT-SORT with global motion compensation, and a track buffer widened from 30 to 90 frames because
+         the default assumes 30 fps footage while these clips are 60.</p>
+    </li>
+    <li>
+      <h3>Analyse</h3>
+      <p>Drone drift is measured from ground features with sparse optical flow and subtracted. A vehicle
+         counts as moving if it travels more than 25% of its own body length in half a second — roughly
+         8 km/h, and independent of altitude.</p>
+    </li>
+  </ol>
+</section>
+
+<section class="wrap" id="results">
+  <h2>Results</h2>
+  <p class="sub">Measured on my own footage, which the model never saw during training. Same tracker and
+     settings in both columns, so the detector is the only thing that changed.</p>
+  <div class="tables">
+    <table>
+      <caption>Oblique clip · 10 s · ~25 vehicles</caption>
+      <thead><tr><th>Metric</th><th>COCO</th><th>Fine-tuned</th></tr></thead>
+      <tbody>
+        <tr><td>Unique track IDs</td><td>177</td><td class="good">62</td></tr>
+        <tr><td>Flicker tracks (&lt;10 frames)</td><td>100</td><td class="good">16</td></tr>
+        <tr><td>Median track lifetime</td><td>0.1 s</td><td class="good">1.3 s</td></tr>
+        <tr><td>Median confidence</td><td>0.70</td><td class="good">0.84</td></tr>
+      </tbody>
+    </table>
+    <table>
+      <caption>Straight-down clip · 30 s · residential</caption>
+      <thead><tr><th>Metric</th><th>COCO</th><th>Fine-tuned</th></tr></thead>
+      <tbody>
+        <tr><td>Vehicles per frame</td><td>10.4</td><td class="good">22.2</td></tr>
+        <tr><td>Median confidence</td><td>0.38</td><td class="good">0.83</td></tr>
+        <tr><td>Detections below 0.4</td><td>56%</td><td class="good">2%</td></tr>
+        <tr><td>Median track lifetime</td><td>0.6 s</td><td class="good">1.5 s</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="note">
+    <h3>On the benchmark</h3>
+    <p>On VisDrone's validation set the fine-tuned model reaches <strong>0.929 mAP50</strong> and
+       0.673 mAP50-95, with 0.927 precision and 0.866 recall. Split by camera angle, the straight-down
+       subset scores 0.976 mAP50 against 0.927 for tilted views — though that subset holds only 42 images,
+       so treat it as an indication rather than a measurement. These numbers are not comparable to published
+       VisDrone results, which score ten classes including pedestrians and bicycles.</p>
+    <p>Training ran for 56 epochs in 10 hours on a free Kaggle T4. Validation loss flattened and mAP
+       plateaued around epoch 45, so the errors that remain are a domain gap, not undertraining.</p>
+  </div>
+  <figure class="chart">
+    <img src="media/training.png" alt="Training curves: losses falling and mAP plateauing near epoch 45" loading="lazy">
+    <figcaption>Training and validation curves over 56 epochs.</figcaption>
+  </figure>
+</section>
+
+<section class="wrap" id="limits">
+  <h2>What it still gets wrong</h2>
+  <ul class="limits">
+    <li><strong>Occlusion breaks identity.</strong> A vehicle passing under a bridge or dense tree canopy
+      comes out the other side with a new ID. Recovering identity through occlusion, not detection, is the
+      next real problem.</li>
+    <li><strong>Frame edges create phantoms.</strong> A vehicle that leaves the frame and returns is counted
+      as a new arrival, which inflates the unique-ID total.</li>
+    <li><strong>Drift correction has limits.</strong> The moving-versus-parked split degrades when the
+      aircraft yaws hard, or when vehicles fill enough of the frame that there is little static ground left
+      to measure against.</li>
+    <li><strong>No hand-counted ground truth.</strong> Unique IDs is a proxy for tracking quality, not a
+      measurement of it. Proper MOTA/IDF1 scoring needs labelled clips, which is the next piece of work.</li>
+    <li><strong>One class only.</strong> Merging car, van, truck and bus fixed the label flapping, at the
+      cost of any vehicle-type breakdown.</li>
+  </ul>
+</section>
+
+<section class="wrap" id="run">
+  <h2>Run it yourself</h2>
+  <p class="sub">Everything is in the repository: dataset preparation, training, evaluation and the
+     rendering pipeline that produces the videos above.</p>
+<pre><code>git clone https://github.com/krawat11/aerial-car-tracking.git
+cd aerial-car-tracking
+uv sync
+
+# prepare VisDrone, then fine-tune (a GPU is strongly recommended)
+uv run python scripts/prepare_visdrone.py
+uv run python scripts/refine_visdrone.py
+uv run python scripts/train.py --name visdrone_v1 --hours 10
+
+# track a clip and render the analytics video
+uv run python scripts/baseline.py --video my_clip.mp4 --model models/visdrone_v1.pt \
+    --tracker configs/botsort_60fps.yaml --no-video
+uv run python scripts/render.py --video my_clip.mp4</code></pre>
+  <p class="sub">Training runs on a free Kaggle T4 through <code>notebooks/kaggle_train.ipynb</code>.</p>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Built by Keshav Rawat · Mechatronic engineering, robotics and autonomous systems.</p>
+    <p class="links">
+      <a href="https://github.com/krawat11/aerial-car-tracking">Repository</a>
+      <a href="https://www.linkedin.com/in/keshav-rawat-34855b1b7">LinkedIn</a>
+      <a href="https://keshavrawatportfolio.netlify.app">Portfolio</a>
+    </p>
+  </div>
+</footer>
+</body>
+</html>

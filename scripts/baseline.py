@@ -41,6 +41,7 @@ def main():
     ap.add_argument("--tracker", default="botsort.yaml")
     ap.add_argument("--imgsz", type=int, default=1280)  # higher = better for small cars, slower
     ap.add_argument("--conf", type=float, default=0.25)
+    ap.add_argument("--out-dir", default="runs/baseline")
     ap.add_argument("--no-video", action="store_true", help="skip writing the annotated video (saves ~1 GB per 30 s of 4K)")
     args = ap.parse_args()
 
@@ -55,8 +56,10 @@ def main():
     cap.release()
 
     stem = Path(args.video).stem
-    tag = f"{stem}_{Path(args.model).parent.parent.name or Path(args.model).stem}_{Path(args.tracker).stem}_{args.imgsz}"
-    out_dir = Path("runs/baseline"); out_dir.mkdir(parents=True, exist_ok=True)
+    mp = Path(args.model)
+    model_name = mp.parent.parent.name if mp.parent.name == "weights" else mp.stem
+    tag = f"{stem}_{model_name}_{Path(args.tracker).stem}_{args.imgsz}"
+    out_dir = Path(args.out_dir); out_dir.mkdir(parents=True, exist_ok=True)
     writer = None if args.no_video else cv2.VideoWriter(
         str(out_dir / f"{tag}.mp4"), cv2.VideoWriter_fourcc(*"mp4v"), fps_in, (w, h))
 
@@ -115,7 +118,7 @@ def main():
     print(f"Model speed (per frame):   {sum(infer_ms)/max(frames,1):.1f} ms "
           f"(~{1000/max(sum(infer_ms)/max(frames,1),1e-6):.0f} FPS)")
     print(f"End-to-end incl. drawing:  {frames/wall:.1f} FPS")
-    print(f"Saved to {out_dir}/: {tag}.mp4, _per_frame.csv, _tracks.csv")
+    print(f"Saved to {out_dir}/: {tag}" + ("" if args.no_video else ".mp4,") + " _per_frame.csv, _tracks.csv")
 
 
 if __name__ == "__main__":
