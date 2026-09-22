@@ -28,17 +28,115 @@
 </header>
 
 <main>
-<section class="wrap" id="demo">
-  <h2>The system running</h2>
-  <p class="sub">Untrained detector on top, fine-tuned detector below. Bright boxes are moving vehicles,
-     grey boxes are parked. The panel tracks counts, unique IDs and confidence as the clip plays.</p>
-  <figure class="video">
-    <video controls playsinline poster="media/poster.jpg" preload="none">
-      <source src="media/demo.mp4" type="video/mp4">
-      Your browser cannot play this video.
-    </video>
-    <figcaption>Residential street, Swansea. 4K at 60 fps, processed offline at 1280 px.</figcaption>
-  </figure>
+<section class="wrap" id="clips">
+  <h2>Five clips, two detectors</h2>
+  <p class="sub">Each video shows the same footage twice: the off-the-shelf COCO detector on top, the
+     fine-tuned model below. Bright boxes are moving vehicles, grey boxes parked. Tracker and settings are
+     identical in both panels, so the detector is the only variable. Numbers are taken from the end of each clip.</p>
+  <div class="clips">
+      <article class="clip">
+        <video controls playsinline preload="none" poster="media/clips/DJI_20260920165338_0081_D.jpg">
+          <source src="media/clips/DJI_20260920165338_0081_D.mp4" type="video/mp4">
+        </video>
+        <div class="clip-body">
+          <div class="clip-head">
+            <h3>Roundabout approach</h3>
+            <span class="dur">26 s · 4K 60 fps</span>
+          </div>
+          <p class="desc">Queued and moving traffic on a two-lane approach, filmed near-vertically. The cleanest case in the set: few occlusions, good contrast, vehicles well separated.</p>
+          <table class="mini">
+            <thead><tr><th></th><th>Unique IDs</th><th>Flicker</th><th>Mean conf.</th><th>Peak count</th></tr></thead>
+            <tbody>
+              <tr><th>Untrained</th><td>68</td><td>14</td><td>0.56</td><td>16</td></tr>
+              <tr class="tr"><th>Trained</th><td>32</td><td>5</td><td>0.85</td><td>16</td></tr>
+            </tbody>
+          </table>
+          <p class="verdict">Unique IDs more than halved and flicker dropped from 14 tracks to 5, with both models seeing the same peak count.</p>
+        </div>
+      </article>
+      <article class="clip">
+        <video controls playsinline preload="none" poster="media/clips/DJI_20260920165516_0082_D.jpg">
+          <source src="media/clips/DJI_20260920165516_0082_D.mp4" type="video/mp4">
+        </video>
+        <div class="clip-body">
+          <div class="clip-head">
+            <h3>Terraced residential street</h3>
+            <span class="dur">30 s · 4K 60 fps</span>
+          </div>
+          <p class="desc">Rows of parked cars along the kerb with a few vehicles moving through. The scene the COCO model struggled with most.</p>
+          <table class="mini">
+            <thead><tr><th></th><th>Unique IDs</th><th>Flicker</th><th>Mean conf.</th><th>Peak count</th></tr></thead>
+            <tbody>
+              <tr><th>Untrained</th><td>130</td><td>33</td><td>0.38</td><td>25</td></tr>
+              <tr class="tr"><th>Trained</th><td>104</td><td>22</td><td>0.83</td><td>38</td></tr>
+            </tbody>
+          </table>
+          <p class="verdict">Mean confidence more than doubled, 0.38 to 0.83, and the trained model finds 38 vehicles at peak against 25 — mostly parked cars the old model skipped.</p>
+        </div>
+      </article>
+      <article class="clip">
+        <video controls playsinline preload="none" poster="media/clips/DJI_20260920170320_0084_D.jpg">
+          <source src="media/clips/DJI_20260920170320_0084_D.mp4" type="video/mp4">
+        </video>
+        <div class="clip-body">
+          <div class="clip-head">
+            <h3>Dual carriageway and overbridge</h3>
+            <span class="dur">30 s · 4K 60 fps</span>
+          </div>
+          <p class="desc">Traffic passing beneath a road bridge. The clearest illustration of the occlusion problem: vehicles vanish under the deck and reappear with fresh identities.</p>
+          <table class="mini">
+            <thead><tr><th></th><th>Unique IDs</th><th>Flicker</th><th>Mean conf.</th><th>Peak count</th></tr></thead>
+            <tbody>
+              <tr><th>Untrained</th><td>65</td><td>37</td><td>0.39</td><td>7</td></tr>
+              <tr class="tr"><th>Trained</th><td>71</td><td>1</td><td>0.82</td><td>33</td></tr>
+            </tbody>
+          </table>
+          <p class="verdict">Flicker collapsed from 37 tracks to 1, yet total IDs rose slightly — the trained model sees roughly five times as many vehicles, and each bridge crossing still costs an identity.</p>
+        </div>
+      </article>
+      <article class="clip">
+        <video controls playsinline preload="none" poster="media/clips/DJI_20260920170425_0086_D.jpg">
+          <source src="media/clips/DJI_20260920170425_0086_D.mp4" type="video/mp4">
+        </video>
+        <div class="clip-body">
+          <div class="clip-head">
+            <h3>Motorway junction</h3>
+            <span class="dur">30 s · 4K 60 fps</span>
+          </div>
+          <p class="desc">Slip roads and merging lanes at speed, with hedgerow and tree shadow across the carriageway.</p>
+          <table class="mini">
+            <thead><tr><th></th><th>Unique IDs</th><th>Flicker</th><th>Mean conf.</th><th>Peak count</th></tr></thead>
+            <tbody>
+              <tr><th>Untrained</th><td>61</td><td>29</td><td>0.37</td><td>7</td></tr>
+              <tr class="tr"><th>Trained</th><td>87</td><td>3</td><td>0.81</td><td>23</td></tr>
+            </tbody>
+          </table>
+          <p class="verdict">The untrained model sees 7 vehicles at peak and is unsure about most of them; the trained model holds 23 with mean confidence 0.81.</p>
+        </div>
+      </article>
+      <article class="clip">
+        <video controls playsinline preload="none" poster="media/clips/DJI_20260920165255_0080_D.jpg">
+          <source src="media/clips/DJI_20260920165255_0080_D.mp4" type="video/mp4">
+        </video>
+        <div class="clip-body">
+          <div class="clip-head">
+            <h3>Slip road under tree cover</h3>
+            <span class="dur">33 s · 4K 60 fps</span>
+          </div>
+          <p class="desc">A curving slip road with heavy tree canopy along one edge. The hardest clip in the set, and the one where the trained model's extra sensitivity costs it.</p>
+          <table class="mini">
+            <thead><tr><th></th><th>Unique IDs</th><th>Flicker</th><th>Mean conf.</th><th>Peak count</th></tr></thead>
+            <tbody>
+              <tr><th>Untrained</th><td>122</td><td>45</td><td>0.53</td><td>19</td></tr>
+              <tr class="tr"><th>Trained</th><td>189</td><td>92</td><td>0.81</td><td>36</td></tr>
+            </tbody>
+          </table>
+          <p class="verdict">An honest loss on the ID count: the trained model detects 36 vehicles at peak against 19, but tracking them through the canopy produces 189 identities against 122. Better detection, worse bookkeeping.</p>
+        </div>
+      </article>
+  </div>
+  <p class="note-inline">Flicker counts tracks that survive fewer than 10 frames, a sixth of a second at 60 fps.
+     Peak count is the highest number of vehicles held on screen at once.</p>
 </section>
 
 <section class="wrap" id="how">

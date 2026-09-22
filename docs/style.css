@@ -73,3 +73,22 @@ footer{padding:36px 0 56px;color:var(--muted);font-size:.9rem}
 footer p{margin:0 0 .4rem}
 .links a{margin-right:18px}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+.clips{display:grid;gap:22px;margin-top:1.75rem}
+.clip{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.clip video{width:100%;display:block;background:#000;aspect-ratio:1848/1524}
+.clip-body{padding:18px 20px 20px}
+.clip-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.clip-head h3{margin:0;font-size:1.05rem}
+.dur{font-family:var(--mono);font-size:.72rem;color:var(--muted);letter-spacing:.04em}
+.desc{color:var(--muted);font-size:.92rem;margin:.6rem 0 1rem;max-width:70ch}
+table.mini{background:transparent;border:0;border-radius:0;font-size:.86rem;margin-bottom:.9rem}
+table.mini thead th{font-size:.68rem;padding:0 10px 6px;color:var(--muted)}
+table.mini tbody th{text-align:left;font-weight:500;color:var(--muted);padding:8px 10px;border-top:1px solid var(--line);font-size:.82rem}
+table.mini td{padding:8px 10px;border-top:1px solid var(--line);font-family:var(--mono)}
+table.mini tr.tr td{color:var(--accent)}
+.verdict{margin:0;font-size:.88rem;color:var(--muted);border-left:2px solid var(--accent-dim);padding-left:14px;max-width:72ch}
+.note-inline{margin-top:1.25rem;font-size:.82rem;color:#7e868d}
+@media(min-width:900px){.clip{display:grid;grid-template-columns:1.25fr 1fr;align-items:stretch}
+  .clip video{height:100%;object-fit:contain;background:#000}
+  .clip-body{padding:22px 24px}}
